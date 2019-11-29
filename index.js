@@ -27,7 +27,7 @@ self.addEventListener("activate", ev => ev.waitUntil(caches.keys().then(args => 
 			log("type=activate, cached=false, message=\"Caching core assets\"");
 
 			return cache.addAll(urls);
-		}).catch(err => log(`type=error, action=install, message="${err.message}"`));
+		}).catch(err => log(`type=error, action=activate, message="${err.message}"`));
 	} else {
 		log("type=activate, cached=true, message=\"Reusing cached core assets\"");
 	}
@@ -77,7 +77,7 @@ self.addEventListener("fetch", ev => ev.respondWith(new Promise(async resolve =>
 				}
 
 				return res;
-			}).catch(() => cached);
+			}).catch(() => void 0);
 		}
 	} else {
 		result = fetch(ev.request).then(res => {
