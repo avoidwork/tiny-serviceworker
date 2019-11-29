@@ -1,0 +1,25 @@
+{
+  "name": "tiny-serviceworker",
+  "version": "1.0.0",
+  "description": "Sample service worker",
+  "main": "index.js",
+  "scripts": {
+    "test": "eslint index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com//avoidwork/tiny-serviceworker.git"
+  },
+  "keywords": [
+    "service",
+    "worker",
+    "sw",
+    "template",
+    "example"
+  ],
+  "author": "Jason Mulligan <jason.mulligan@avoidwork.com>",
+  "license": "BSD-3-Clause",
+  "devDependencies": {
+    "eslint": "^6.7.1"
+  }
+}
