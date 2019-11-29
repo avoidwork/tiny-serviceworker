@@ -77,13 +77,7 @@ self.addEventListener("fetch", ev => ev.respondWith(new Promise(async resolve =>
 				}
 
 				return res;
-			}).catch(err => {
-				if (cached === void 0) {
-					throw err;
-				}
-
-				return cached;
-			});
+			}).catch(() => cached);
 		}
 	} else {
 		result = fetch(ev.request).then(res => {
