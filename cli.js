@@ -42,7 +42,7 @@ const path = require("path"),
 
 				files = [...files, ...lfiles];
 			} catch (err) {
-				console.log(`Failed to read from ${fp}`);
+				console.error(`Failed to read from ${fp}`);
 				process.exit(1);
 			}
 		}
@@ -50,7 +50,12 @@ const path = require("path"),
 		sw = sw.replace("urls = [\"/\"]", `urls = ${JSON.stringify(files.filter(i => i !== "/sw.js"), null, 2)}`);
 	}
 
-	await fs.writeFile(path.join(opts.cwd, "sw.js"), sw, "utf8");
+	try {
+		await fs.writeFile(path.join(opts.cwd, "sw.js"), sw, "utf8");
+	} catch (err) {
+		console.error(err.message);
+		process.exit(1);
+	}
 
 	if (opts.loader) {
 		let loader = await fs.readFile(path.join(opts.src, "loader.js"), "utf8");
@@ -59,7 +64,12 @@ const path = require("path"),
 			loader = loader.replace("my-app", opts.name);
 		}
 
-		await fs.writeFile(path.join(opts.cwd, "loaded.js"), loader, "utf8");
+		try {
+			await fs.writeFile(path.join(opts.cwd, "loaded.js"), loader, "utf8");
+		} catch (err) {
+			console.error(err.message);
+			process.exit(1);
+		}
 	}
 
 	console.log(opts.loader === false ? "Generated service worker (sw.js) script" : "Generated service worker (sw.js) & loader (loader.js) scripts");

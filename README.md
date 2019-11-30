@@ -1,5 +1,5 @@
 # tiny-serviceworker
-Sample service worker with automatic cache management
+Service Worker with automatic cache management for your PWA.
 
 ## How do I use this?
 - Install from `npm` or clone from `github`
