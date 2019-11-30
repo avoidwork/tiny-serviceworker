@@ -7,7 +7,7 @@ const version = 1,
 	cacheable = arg => (arg.includes("no-store") || arg.includes("max-age=0")) === false;
 
 function log (arg) {
-	console.type(`[serviceWorker:${new Date().getTime()}] ${arg}`);
+	console.log(`[serviceWorker:${new Date().getTime()}] ${arg}`);
 }
 
 self.addEventListener("activate", ev => ev.waitUntil(caches.keys().then(args => {
