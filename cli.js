@@ -55,7 +55,7 @@ async function walk (directory, files, apath = `/${directory}`) {
 
 	if (opts.directories.length > 0) {
 		const directories = Array.from(new Set(opts.directories.split(",")));
-		let files = ["/"];
+		let files = ["/", "/manifest.json"];
 
 		for (const directory of directories) {
 			files = await walk(directory, files);
