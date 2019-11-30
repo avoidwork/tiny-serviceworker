@@ -52,5 +52,5 @@ Default cache TTL (seconds) on requested URLs. Does not apply to core assets!
 #### version (optional - default 1)
 Cache version. Increment when core assets change.
 
-#### walk (optional - default true, requires 'folders')
-Boolean to enable/disable walking folders for cache inclusion
+#### walk (optional - default true, requires 'directories')
+Boolean to enable/disable walking directories for cache inclusion
