@@ -32,7 +32,7 @@ async function walk (directory, files, apath = `/${directory}`) {
 
 		if (opts.walk && ldirectories.length > 0) {
 			for (const ldirectory of ldirectories) {
-				result = await walk(path.join(directory, ldirectory), result, `/${directory}/${ldirectory}`);
+				result = await walk(path.join(directory, ldirectory), result, `${apath}/${ldirectory}`);
 			}
 		}
 	} catch (err) {
