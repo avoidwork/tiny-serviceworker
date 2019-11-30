@@ -61,7 +61,7 @@ async function walk (directory, files, apath = `/${directory}`) {
 			files = await walk(directory, files);
 		}
 
-		sw = sw.replace("urls = [\"/\"]", `urls = ${JSON.stringify(files.filter(i => i !== "/sw.js"))}`);
+		sw = sw.replace("urls = [\"/\"]", `urls = ${JSON.stringify(Array.from(new Set(files.filter(i => i !== "/sw.js"))))}`);
 	}
 
 	try {
