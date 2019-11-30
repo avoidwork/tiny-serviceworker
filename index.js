@@ -82,7 +82,7 @@ self.addEventListener("fetch", ev => ev.respondWith(new Promise(async resolve =>
 	} else {
 		result = fetch(ev.request).then(res => {
 			if ((res.type === "basic" || res.type === "cors") && res.status >= 200 && res.status < 400 && method !== "HEAD" && method !== "OPTIONS") {
-				cache.delete(ev.request);
+				cache.delete(ev.request, {ignoreMethod: true});
 			}
 
 			return res;
