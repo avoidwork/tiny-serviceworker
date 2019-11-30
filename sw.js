@@ -3,9 +3,7 @@
 const version = 1,
 	name = `my-app-v${version}`,
 	timeout = 18e2,
-	urls = [ // @todo add every file required to run your PWA
-		"/"
-	],
+	urls = ["/"],
 	cacheable = arg => (arg.includes("no-store") || arg.includes("max-age=0")) === false;
 
 function log (arg, type = "log", ts = true) {
