@@ -2,11 +2,11 @@
 Service Worker with automatic cache management for your PWA.
 
 ## How do I use this?
-- Install from `npm` or clone from `github`
-- Copy `sw.js` to root folder of web app & rename to `sw.js`
-- Edit `sw.js`, renaming `name` & setting `urls` to the required files to run web app offline
-- Increment the `version` integer any time a core asset changes to delete a stale cache
-- Install `sw.js` in web app (see `loader.js`)
+- Install from `npm` or clone from `github`.
+- Copy `sw.js` to root folder of web app.
+- Edit `sw.js`, renaming `name` & setting `urls` to the required files to run web app offline.
+- Increment the `version` integer any time a core asset changes to delete a stale cache.
+- Install `sw.js` in web app (see `loader.js`).
 
 ```javascript
 (function () {
@@ -33,7 +33,7 @@ Install with `npm` & use the cli to generate a service worker in the current fol
 
 ```
 $ npm i tiny-serviceworker -g
-$ sw --name="myapp"
+$ sw --name="myapp" --folders="assets/css,assets/js,assets/img" --loader=true
 ```
 
 #### Parameters
