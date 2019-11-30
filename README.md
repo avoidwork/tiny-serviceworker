@@ -33,14 +33,14 @@ Install with `npm` & use the cli to generate a service worker in the current fol
 
 ```
 $ npm i tiny-serviceworker -g
-$ sw --name="myapp" --folders="assets/css,assets/js,assets/img" --loader=true
+$ sw --name="myapp" --directories="assets/css,assets/js,assets/img" --loader=true
 ```
 
 #### Parameters
 #### name
 Name of your PWA
 
-#### folders (optional)
+#### directories (optional)
 Quoted comma delimited relative (from root) folder names to include in generated service worker
 
 #### loader (optional - default false)
@@ -51,3 +51,6 @@ Default cache TTL (seconds) on requested URLs. Does not apply to core assets!
 
 #### version (optional - default 1)
 Cache version. Increment when core assets change.
+
+#### walk (optional - default true, requires 'folders')
+Boolean to enable/disable walking folders for cache inclusion

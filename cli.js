@@ -12,12 +12,36 @@ const path = require("path"),
 	opts = {
 		cwd: process.cwd(),
 		name: argv.name || "my-app",
-		folders: argv.folders || "",
+		directories: argv.directories || "",
 		loader: argv.loader || false,
 		src: __dirname,
 		timeout: argv.timeout || 18e2,
-		version: argv.version || 1
+		version: argv.version || 1,
+		walk: argv.walk || true
 	};
+
+async function walk (directory, files, apath = `/${directory}`) {
+	let result;
+
+	try {
+		const dir = await fs.readdir(directory, {encoding: "utf8", withFileTypes: true}),
+			ldirectories = dir.filter(i => i.isDirectory()).map(i => i.name),
+			lfiles = dir.filter(i => i.isFile() && i.name.includes(".") && i.name.charAt(0) !== ".").map(i => `${apath}/${i.name}`);
+
+		result = [...files, ...lfiles];
+
+		if (opts.walk && ldirectories.length > 0) {
+			for (const ldirectory of ldirectories) {
+				result = await walk(path.join(directory, ldirectory), result, `/${directory}/${ldirectory}`);
+			}
+		}
+	} catch (err) {
+		console.error(err.stack);
+		process.exit(1);
+	}
+
+	return result;
+}
 
 (async function () {
 	let sw = await fs.readFile(path.join(opts.src, "sw.js"), "utf8");
@@ -29,31 +53,21 @@ const path = require("path"),
 	sw = sw.replace("timeout = 18e2", `timeout = ${opts.timeout}`);
 	sw = sw.replace("version = 1", `version = ${opts.version}`);
 
-	if (opts.folders.length > 0) {
-		const folders = opts.folders.split(",");
+	if (opts.directories.length > 0) {
+		const directories = opts.directories.split(",");
 		let files = ["/"];
 
-		for (const folder of folders) {
-			const fp = path.resolve(opts.cwd, folder);
-
-			try {
-				const dir = await fs.readdir(fp, {encoding: "utf8", withFileTypes: true}),
-					lfiles = dir.filter(i => i.isFile() && i.name.includes(".") && i.name.charAt(0) !== ".").map(i => `/${folder}/${i.name}`);
-
-				files = [...files, ...lfiles];
-			} catch (err) {
-				console.error(`Failed to read from ${fp}`);
-				process.exit(1);
-			}
+		for (const directory of directories) {
+			files = await walk(directory, files);
 		}
 
-		sw = sw.replace("urls = [\"/\"]", `urls = ${JSON.stringify(files.filter(i => i !== "/sw.js"), null, 2)}`);
+		sw = sw.replace("urls = [\"/\"]", `urls = ${JSON.stringify(files.filter(i => i !== "/sw.js"))}`);
 	}
 
 	try {
 		await fs.writeFile(path.join(opts.cwd, "sw.js"), sw, "utf8");
 	} catch (err) {
-		console.error(err.message);
+		console.error(err.stack);
 		process.exit(1);
 	}
 
@@ -67,7 +81,7 @@ const path = require("path"),
 		try {
 			await fs.writeFile(path.join(opts.cwd, "loaded.js"), loader, "utf8");
 		} catch (err) {
-			console.error(err.message);
+			console.error(err.stack);
 			process.exit(1);
 		}
 	}
