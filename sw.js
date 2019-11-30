@@ -6,14 +6,8 @@ const version = 1,
 	urls = ["/"],
 	cacheable = arg => (arg.includes("no-store") || arg.includes("max-age=0")) === false;
 
-function log (arg, type = "log", ts = true) {
-	const timestamp = type !== "error" && ts ? new Date().getTime() : 0;
-
-	if (timestamp > 0) {
-		console[type](arg instanceof Object ? arg : `[serviceworker:${timestamp}] ${arg}`);
-	} else {
-		console[type](arg);
-	}
+function log (arg) {
+	console.type(`[serviceWorker:${new Date().getTime()}] ${arg}`);
 }
 
 self.addEventListener("activate", ev => ev.waitUntil(caches.keys().then(args => {
