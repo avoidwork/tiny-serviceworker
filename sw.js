@@ -3,7 +3,7 @@
 const version = 1,
 	name = `my-app-v${version}`,
 	timeout = 18e2,
-	urls = ["/"],
+	urls = ["/", "/manifest.json"],
 	cacheable = arg => (arg.includes("no-store") || arg.includes("max-age=0")) === false;
 
 function log (arg) {
