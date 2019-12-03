@@ -69,7 +69,7 @@ self.addEventListener("fetch", ev => ev.respondWith(new Promise(async resolve =>
 				}
 
 				return res;
-			}).catch(() => void 0);
+			}).catch(() => Response.error());
 		}
 	} else {
 		result = fetch(ev.request).then(res => {
@@ -78,7 +78,7 @@ self.addEventListener("fetch", ev => ev.respondWith(new Promise(async resolve =>
 			}
 
 			return res;
-		}).catch(() => void 0);
+		}).catch(() => Response.error());
 	}
 
 	resolve(result);
