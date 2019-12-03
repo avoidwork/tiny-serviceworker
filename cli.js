@@ -13,6 +13,7 @@ const path = require("path"),
 		cwd: process.cwd(),
 		directories: argv.directories || "",
 		increment: argv.increment || true,
+		ignore: new RegExp(`(${Array.from(new Set(["/sw.js", ...(argv.ignore || "").split(",").filter(i => i.length > 0)])).map(i => `/${i.replace(/^\//, "").replace(/(\/|\.)/g, "\\$1").replace(/\*/, ".*")}`).join(")|(")})$`),
 		loader: argv.loader || false,
 		name: argv.name || "my-app",
 		src: __dirname,
@@ -66,7 +67,7 @@ async function walk (directory, files, apath = `/${directory}`) {
 	}
 
 	sw = sw.replace("timeout = 18e2", `timeout = ${opts.timeout}`);
-	sw = sw.replace("version = 1", `version = ${opts.version}`);
+	sw = sw.replace(/version = (\d+)/, `version = ${opts.version}`);
 
 	if (opts.directories.length > 0) {
 		const directories = Array.from(new Set(opts.directories.split(",")));
@@ -76,7 +77,7 @@ async function walk (directory, files, apath = `/${directory}`) {
 			files = await walk(directory, files);
 		}
 
-		sw = sw.replace("urls = [\"/\", \"/manifest.json\"]", `urls = ${JSON.stringify(files.filter(i => i !== "/sw.js"))}`);
+		sw = sw.replace("urls = [\"/\", \"/manifest.json\"]", `urls = ${JSON.stringify(files.filter(i => opts.ignore.test(i) === false))}`);
 	}
 
 	try {

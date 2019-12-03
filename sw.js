@@ -1,8 +1,8 @@
 "use strict";
 
-const version = 1,
+const version = 2,
 	name = `my-app-v${version}`,
-	timeout = 18e2,
+	timeout = 1800,
 	urls = ["/", "/manifest.json"],
 	cacheable = arg => (arg.includes("no-store") || arg.includes("max-age=0")) === false;
 

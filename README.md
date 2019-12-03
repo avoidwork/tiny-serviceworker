@@ -46,6 +46,9 @@ Quoted comma delimited relative (from root) directory names to include in genera
 #### increment (optional - default true)
 Boolean to auto-increment `version` integer in `sw.js`
 
+#### ignore (optional)
+Quoted comma delimited relative (from root) directories or files to exclude; supports * for wildcards
+
 #### loader (optional - default false)
 Boolean to generate `loader.js` script for `sw.js`
 
