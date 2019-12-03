@@ -4,6 +4,7 @@ const version = 1,
 	name = `my-app-v${version}`,
 	timeout = 1800,
 	urls = ["/", "/manifest.json"],
+	failover = "",
 	cacheable = arg => (arg.includes("no-store") || arg.includes("max-age=0")) === false;
 
 function log (arg) {
@@ -69,7 +70,7 @@ self.addEventListener("fetch", ev => ev.respondWith(new Promise(async resolve =>
 				}
 
 				return res;
-			}).catch(() => Response.error());
+			}).catch(() => failover.length > 0 ? cache.match(failover) : Response.error());
 		}
 	} else {
 		result = fetch(ev.request).then(res => {
@@ -78,7 +79,7 @@ self.addEventListener("fetch", ev => ev.respondWith(new Promise(async resolve =>
 			}
 
 			return res;
-		}).catch(() => Response.error());
+		}).catch(() => failover.length > 0 ? cache.match(failover) : Response.error());
 	}
 
 	resolve(result);
