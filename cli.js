@@ -66,7 +66,7 @@ async function walk (directory, files, apath = `/${directory}`) {
 		sw = sw.replace("name = `my-app-v${version}`", `name = \`${opts.name}-v\$\{version\}\``);
 	}
 
-	sw = sw.replace("timeout = 18e2", `timeout = ${opts.timeout}`);
+	sw = sw.replace(/timeout = (\d+)/, `timeout = ${opts.timeout}`);
 	sw = sw.replace(/version = (\d+)/, `version = ${opts.version}`);
 
 	if (opts.directories.length > 0) {
