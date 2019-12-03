@@ -43,6 +43,9 @@ Name of your PWA
 #### directories (optional)
 Quoted comma delimited relative (from root) directory names to include in generated service worker
 
+#### increment (optional - default true)
+Boolean to auto-increment `version` integer in `sw.js`
+
 #### loader (optional - default false)
 Boolean to generate `loader.js` script for `sw.js`
 

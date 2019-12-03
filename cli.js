@@ -5,15 +5,16 @@ const path = require("path"),
 	argv = process.argv.filter(i => i.charAt(0) === "-" && i.charAt(1) === "-").reduce((a, v) => {
 		const x = v.split("--")[1].split("=");
 
-		a[x[0]] = isNaN(x[1]) === false ? Number(x[1]) : x[1] === "true" ? true : x[1];
+		a[x[0]] = isNaN(x[1]) === false ? Number(x[1]) : x[1] === "true" ? true : x[1] === "false" ? false : x[1];
 
 		return a;
 	}, {}),
 	opts = {
 		cwd: process.cwd(),
-		name: argv.name || "my-app",
 		directories: argv.directories || "",
+		increment: argv.increment || true,
 		loader: argv.loader || false,
+		name: argv.name || "my-app",
 		src: __dirname,
 		timeout: argv.timeout || 18e2,
 		version: argv.version || 1,
@@ -44,7 +45,21 @@ async function walk (directory, files, apath = `/${directory}`) {
 }
 
 (async function () {
+	const fp = path.join(opts.cwd, "sw.js");
 	let sw = await fs.readFile(path.join(opts.src, "sw.js"), "utf8");
+
+	if (opts.increment) {
+		try {
+			const lsw = await fs.readFile(fp, "utf8"),
+				lversion = lsw.match(/version = (\d+)/);
+
+			if (lversion !== null) {
+				opts.version = Number(lversion[1]) + 1;
+			}
+		} catch (err) {
+			void 0;
+		}
+	}
 
 	if (opts.name.length > 0) {
 		sw = sw.replace("name = `my-app-v${version}`", `name = \`${opts.name}-v\$\{version\}\``);
@@ -65,7 +80,7 @@ async function walk (directory, files, apath = `/${directory}`) {
 	}
 
 	try {
-		await fs.writeFile(path.join(opts.cwd, "sw.js"), sw, "utf8");
+		await fs.writeFile(fp, sw, "utf8");
 	} catch (err) {
 		console.error(err.stack);
 		process.exit(1);
