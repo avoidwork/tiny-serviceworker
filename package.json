@@ -1,6 +1,6 @@
 {
   "name": "tiny-serviceworker",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "Service Worker with automatic cache management for your PWA.",
   "main": "sw.js",
   "preferGlobal": true,
