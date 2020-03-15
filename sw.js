@@ -5,6 +5,7 @@ const version = 1,
 	timeout = 1800,
 	urls = ["/", "/manifest.json"],
 	failover = "",
+	reload = false,
 	cacheable = arg => (arg.includes("no-store") || arg.includes("max-age=0")) === false;
 
 async function error (cache) {
@@ -43,6 +44,11 @@ self.addEventListener("activate", ev => ev.waitUntil(caches.keys().then(args => 
 		result = Promise.all(invalid.map(i => {
 			log(`type=delete, message="Deleted stale cache ${i}"`);
 			caches.delete(i);
+
+			if (reload) {
+				log("type=reload, message=\"Loading new version of application\"");
+				location.reload();
+			}
 		}));
 	}
 

@@ -55,6 +55,9 @@ Quoted comma delimited relative (from root) directories or files to exclude; sup
 #### loader (optional - default false)
 Boolean to generate `loader.js` script for `sw.js`
 
+#### reload (optional - default false)
+Boolean to force clients to reload when cache has gone stale
+
 #### timeout (optional - default 1800)
 Default cache TTL (seconds) on requested URLs. Does not apply to core assets!
 

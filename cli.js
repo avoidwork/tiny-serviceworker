@@ -13,14 +13,15 @@ const path = require("path"),
 		cwd: process.cwd(),
 		directories: argv.directories || "",
 		failover: argv.failover || "",
-		increment: argv.increment || true,
+		increment: argv.increment === false ? false : true,
 		ignore: new RegExp(`(${Array.from(new Set(["/sw.js", ...(argv.ignore || "").split(",").filter(i => i.length > 0)])).map(i => `/${i.replace(/^\//, "").replace(/(\/|\.)/g, "\\$1").replace(/\*/, ".*")}`).join(")|(")})$`),
 		loader: argv.loader || false,
 		name: argv.name || "my-app",
+		reload: argv.reload === true,
 		src: __dirname,
 		timeout: argv.timeout || 18e2,
 		version: argv.version || 1,
-		walk: argv.walk || true
+		walk: argv.walk === false ? false : true
 	};
 
 async function walk (directory, files, apath = `/${directory}`) {
@@ -87,6 +88,10 @@ async function walk (directory, files, apath = `/${directory}`) {
 
 	if (opts.failover.length > 0) {
 		sw = sw.replace(/failover = ""/, `failover = "${opts.failover}"`);
+	}
+
+	if (opts.reload) {
+		sw = sw.replace("reload = false", "reload = true");
 	}
 
 	try {
