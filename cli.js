@@ -109,7 +109,7 @@ async function walk (directory, files, apath = `/${directory}`) {
 		}
 
 		try {
-			await fs.writeFile(path.join(opts.cwd, "loaded.js"), loader, "utf8");
+			await fs.writeFile(path.join(opts.cwd, "loader.js"), loader, "utf8");
 		} catch (err) {
 			console.error(err.stack);
 			process.exit(1);
