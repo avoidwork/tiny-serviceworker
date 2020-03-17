@@ -46,8 +46,11 @@ self.addEventListener("activate", ev => ev.waitUntil(caches.keys().then(args => 
 			caches.delete(i);
 
 			if (reload) {
-				log("type=reload, message=\"Loading new version of application\"");
-				location.reload();
+				self.clients.claim();
+				self.clients.matchAll().then(clients => clients.forEach(client => {
+					log("type=reload, message=\"Loading new version of application\"");
+					client.postMessage("reload");
+				}));
 			}
 		}));
 	}
