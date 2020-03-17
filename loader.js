@@ -1,6 +1,6 @@
 (function () {
 	function log (arg) {
-		console.type(`[my-app:${new Date().getTime()}] ${arg}`);
+		console.log(`[my-app:${new Date().getTime()}] ${arg}`);
 	}
 
 	if ("serviceWorker" in navigator) {
