@@ -7,6 +7,7 @@
 		navigator.serviceWorker.addEventListener("message", ev => {
 			if (ev.data === "reload") {
 				log("type=serviceWorker, message=\"Loading new version of application\"");
+				window.scrollTo(0, 0);
 				window.location.reload();
 			}
 		});
