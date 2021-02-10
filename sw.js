@@ -8,24 +8,14 @@ const version = 1,
 	reload = false,
 	cacheable = arg => (arg.includes("no-store") || arg.includes("max-age=0")) === false;
 
-async function error (cache, err = null) {
+async function error (cache) {
 	let result;
 
 	if (failover.length > 0) {
 		result = await cache.match(failover);
 	}
 
-	return result !== void 0 ? result : err !== null ? err : Response.error();
-}
-
-async function catcher (cache, err) {
-	const result = await error(cache, err);
-
-	if (result.ok === false) {
-		throw result;
-	}
-
-	return result;
+	return result !== void 0 ? result : Response.error();
 }
 
 function log (arg) {
@@ -99,7 +89,7 @@ self.addEventListener("fetch", ev => ev.respondWith(new Promise(async resolve =>
 				}
 
 				return res;
-			}).catch(err => catcher(cache, err));
+			}).catch(() => error(cache));
 		}
 	} else {
 		result = fetch(ev.request).then(res => {
@@ -108,7 +98,7 @@ self.addEventListener("fetch", ev => ev.respondWith(new Promise(async resolve =>
 			}
 
 			return res;
-		}).catch(err => catcher(cache, err));
+		}).catch(() => error(cache));
 	}
 
 	resolve(result);
