@@ -1,6 +1,6 @@
 {
   "name": "tiny-serviceworker",
-  "version": "2.3.4",
+  "version": "2.3.7",
   "description": "Service Worker with automatic cache management for your PWA.",
   "main": "sw.js",
   "preferGlobal": true,
@@ -27,6 +27,5 @@
   "license": "BSD-3-Clause",
   "devDependencies": {
     "eslint": "^6.8.0"
-  },
-  "dependencies": {}
+  }
 }
