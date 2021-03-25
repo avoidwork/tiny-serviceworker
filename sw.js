@@ -8,7 +8,7 @@ const version = 1,
 	reload = false,
 	cacheable = arg => (arg.includes("no-store") || arg.includes("max-age=0")) === false;
 
-async function error (err, cache) {
+async function error (err, cache, reject) {
 	let cached, result;
 
 	if (failover.length > 0) {
@@ -20,7 +20,7 @@ async function error (err, cache) {
 	}
 
 	if (result === void 0) {
-		throw err;
+		reject(err);
 	}
 
 	return result;
@@ -71,7 +71,7 @@ self.addEventListener("install", async ev => {
 	ev.waitUntil(() => log("type=install, message=\"New service worker installed\""));
 });
 
-self.addEventListener("fetch", ev => ev.respondWith(new Promise(async resolve => {
+self.addEventListener("fetch", ev => ev.respondWith(new Promise(async (resolve, reject) => {
 	const cache = await caches.open(name),
 		method = ev.request.method;
 	let result;
@@ -91,23 +91,21 @@ self.addEventListener("fetch", ev => ev.respondWith(new Promise(async resolve =>
 		}
 
 		if (result === void 0) {
-			result = fetch(ev.request).then(res => {
+			fetch(ev.request).then(res => {
 				if ((res.type === "basic" || res.type === "cors") && res.status === 200 && cacheable(res.headers.get("cache-control") || "")) {
 					cache.put(ev.request, res.clone());
 				}
 
-				return res;
-			}).catch(err => error(err, cache));
+				resolve(res);
+			}).catch(err => error(err, cache, reject));
 		}
 	} else {
-		result = fetch(ev.request).then(res => {
+		fetch(ev.request).then(res => {
 			if ((res.type === "basic" || res.type === "cors") && res.status >= 200 && res.status < 400 && method !== "HEAD" && method !== "OPTIONS") {
 				cache.delete(ev.request, {ignoreMethod: true});
 			}
 
-			return res;
-		}).catch(err => error(err, cache));
+			resolve(res);
+		}).catch(err => error(err, cache, reject));
 	}
-
-	resolve(result);
 })));
