@@ -9,11 +9,17 @@ const version = 1,
 	cacheable = arg => (arg.includes("no-store") || arg.includes("max-age=0")) === false;
 
 async function error (err, cache) {
-	let result;
+	let cached, result;
 
 	if (failover.length > 0) {
-		result = await cache.match(failover);
-	} else {
+		cached = await cache.match(failover);
+
+		if (cached !== void 0) {
+			result = cached.clone();
+		}
+	}
+
+	if (result === void 0) {
 		throw err;
 	}
 
@@ -43,12 +49,12 @@ self.addEventListener("activate", ev => ev.waitUntil(caches.keys().then(args => 
 		result = Promise.resolve();
 	} else {
 		log(`type=delete, message="Stale caches: ${invalid.toString()}"`);
-		result = Promise.all(invalid.map(i => {
+		result = Promise.all(invalid.map(async i => {
 			log(`type=delete, message="Deleted stale cache ${i}"`);
-			caches.delete(i);
+			await caches.delete(i);
 
 			if (reload) {
-				self.clients.claim();
+				await self.clients.claim();
 				self.clients.matchAll().then(clients => clients.forEach(client => {
 					log("type=reload, message=\"Loading new version of application\"");
 					client.postMessage("reload");
@@ -60,8 +66,8 @@ self.addEventListener("activate", ev => ev.waitUntil(caches.keys().then(args => 
 	return result;
 }).catch(() => void 0)));
 
-self.addEventListener("install", ev => {
-	self.skipWaiting();
+self.addEventListener("install", async ev => {
+	await self.skipWaiting();
 	ev.waitUntil(() => log("type=install, message=\"New service worker installed\""));
 });
 
