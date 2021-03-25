@@ -67,7 +67,7 @@ self.addEventListener("activate", ev => ev.waitUntil(caches.keys().then(args => 
 }).catch(() => void 0)));
 
 self.addEventListener("install", async ev => {
-	await self.skipWaiting();
+	self.skipWaiting();
 	ev.waitUntil(() => log("type=install, message=\"New service worker installed\""));
 });
 
@@ -87,6 +87,7 @@ self.addEventListener("fetch", ev => ev.respondWith(new Promise(async (resolve, 
 
 			if (urls.includes(url.pathname) || then > now) {
 				result = cached.clone();
+				resolve(result);
 			}
 		}
 
