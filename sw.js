@@ -8,24 +8,6 @@ const version = 1,
 	reload = false,
 	cacheable = arg => (arg.includes("no-store") || arg.includes("max-age=0")) === false;
 
-async function error (err, cache, reject) {
-	let result;
-
-	if (failover.length > 0) {
-		const cached = await cache.match(failover);
-
-		if (cached !== void 0) {
-			result = cached.clone();
-		}
-	}
-
-	if (result === void 0) {
-		reject(err);
-	}
-
-	return result;
-}
-
 async function handle (ev = {}, cache = {}, resolve = () => void 0, reject = () => void 0, cb = async () => void 0) {
 	let lerr, res, valid;
 
@@ -41,7 +23,19 @@ async function handle (ev = {}, cache = {}, resolve = () => void 0, reject = () 
 	if (valid) {
 		resolve(res);
 	} else {
-		error(lerr, cache, reject);
+		let result;
+
+		if (failover.length > 0) {
+			const cached = await cache.match(failover);
+
+			if (cached !== void 0) {
+				result = cached.clone();
+			}
+		}
+
+		if (result === void 0) {
+			reject(lerr);
+		}
 	}
 }
 
