@@ -78,10 +78,10 @@ self.addEventListener("install", ev => {
 self.addEventListener("fetch", ev => ev.respondWith(new Promise(async (resolve, reject) => {
 	const cache = await caches.open(name),
 		method = ev.request.method;
-	let result;
 
 	if (method === "GET") {
 		const cached = await cache.match(ev.request);
+		let result;
 
 		if (cached !== void 0) {
 			const url = new URL(cached.url),
@@ -95,29 +95,47 @@ self.addEventListener("fetch", ev => ev.respondWith(new Promise(async (resolve, 
 		}
 
 		if (result === void 0) {
+			let lerr, res, valid;
+
 			try {
-				const res = await fetch(ev.request);
+				res = await fetch(ev.request);
 
 				if ((res.type === "basic" || res.type === "cors") && res.status === 200 && cacheable(res.headers.get("cache-control") || "")) {
 					await cache.put(ev.request, res.clone());
 				}
 
-				resolve(res);
+				valid = true;
 			} catch (err) {
-				error(err, cache, reject);
+				lerr = err;
+				valid = false;
+			}
+
+			if (valid) {
+				resolve(res);
+			} else {
+				error(lerr, cache, reject);
 			}
 		}
 	} else {
+		let lerr, res, valid;
+
 		try {
-			const res = await fetch(ev.request);
+			res = await fetch(ev.request);
 
 			if ((res.type === "basic" || res.type === "cors") && res.status >= 200 && res.status < 400 && method !== "HEAD" && method !== "OPTIONS") {
 				await cache.delete(ev.request, {ignoreMethod: true});
 			}
 
-			resolve(res);
+			valid = true;
 		} catch (err) {
-			error(err, cache, reject);
+			lerr = err;
+			valid = false;
+		}
+
+		if (valid) {
+			resolve(res);
+		} else {
+			error(lerr, cache, reject);
 		}
 	}
 })));
