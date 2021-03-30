@@ -33,7 +33,9 @@ async function handle (ev = {}, cache = {}, resolve = () => void 0, reject = () 
 			}
 		}
 
-		if (result === void 0) {
+		if (result !== void 0) {
+			resolve(result);
+		} else {
 			reject(lerr);
 		}
 	}
