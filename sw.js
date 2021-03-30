@@ -9,10 +9,10 @@ const version = 1,
 	cacheable = arg => (arg.includes("no-store") || arg.includes("max-age=0")) === false;
 
 async function error (err, cache, reject) {
-	let cached, result;
+	let result;
 
 	if (failover.length > 0) {
-		cached = await cache.match(failover);
+		const cached = await cache.match(failover);
 
 		if (cached !== void 0) {
 			result = cached.clone();
@@ -30,43 +30,47 @@ function log (arg) {
 	console.log(`[serviceWorker:${new Date().getTime()}] ${arg}`);
 }
 
-self.addEventListener("activate", ev => ev.waitUntil(caches.keys().then(args => {
-	const invalid = args.filter(i => i !== name);
-	let result;
-
-	if (args.includes(name) === false) {
-		caches.open(name).then(cache => {
-			log("type=activate, cached=false, message=\"Caching core assets\"");
-
-			return cache.addAll(urls);
-		}).catch(err => log(`type=error, action=activate, message="${err.message}"`));
-	} else {
-		log("type=activate, cached=true, message=\"Reusing cached core assets\"");
-	}
+self.addEventListener("activate", ev => ev.waitUntil(async () => {
+	const args = await caches.keys(),
+		invalid = args.filter(i => i !== name);
+	let reloading = false;
 
 	if (invalid.length === 0) {
 		log("type=delete, message=\"No stale caches\"");
-		result = Promise.resolve();
 	} else {
 		log(`type=delete, message="Stale caches: ${invalid.toString()}"`);
-		result = Promise.all(invalid.map(async i => {
+
+		for (const i of invalid.values()) {
 			log(`type=delete, message="Deleted stale cache ${i}"`);
 			await caches.delete(i);
+		}
 
-			if (reload) {
-				await self.clients.claim();
-				self.clients.matchAll().then(clients => clients.forEach(client => {
-					log("type=reload, message=\"Loading new version of application\"");
-					client.postMessage("reload");
-				}));
+		if (reload) {
+			await self.clients.claim();
+
+			const clients = await self.clients.matchAll();
+
+			for (const client of clients.values()) {
+				log("type=reload, message=\"Loading new version of application\"");
+				client.postMessage("reload");
+				reloading = true;
 			}
-		}));
+		}
 	}
 
-	return result;
-}).catch(() => void 0)));
+	if (reloading === false) {
+		if (args.includes(name) === false) {
+			const cache = await caches.open(name);
 
-self.addEventListener("install", async ev => {
+			log("type=activate, cached=false, message=\"Caching core assets\"");
+			await cache.addAll(urls);
+		} else {
+			log("type=activate, cached=true, message=\"Reusing cached core assets\"");
+		}
+	}
+}));
+
+self.addEventListener("install", ev => {
 	self.skipWaiting();
 	ev.waitUntil(() => log("type=install, message=\"New service worker installed\""));
 });
@@ -77,36 +81,43 @@ self.addEventListener("fetch", ev => ev.respondWith(new Promise(async (resolve, 
 	let result;
 
 	if (method === "GET") {
-		const cached = await cache.match(ev.request),
-			now = new Date().getTime();
+		const cached = await cache.match(ev.request);
 
 		if (cached !== void 0) {
 			const url = new URL(cached.url),
 				cdate = cached.headers.get("date"),
 				then = (cdate !== null ? new Date(cdate) : new Date()).getTime() + Number((cached.headers.get("cache-control") || "").replace(/[^\d]/g, "") || timeout) * 1e3;
 
-			if (urls.includes(url.pathname) || then > now) {
+			if (urls.includes(url.pathname) || then > new Date().getTime()) {
 				result = cached.clone();
 				resolve(result);
 			}
 		}
 
 		if (result === void 0) {
-			fetch(ev.request).then(res => {
+			try {
+				const res = await fetch(ev.request);
+
 				if ((res.type === "basic" || res.type === "cors") && res.status === 200 && cacheable(res.headers.get("cache-control") || "")) {
-					cache.put(ev.request, res.clone());
+					await cache.put(ev.request, res.clone());
 				}
 
 				resolve(res);
-			}).catch(err => error(err, cache, reject));
+			} catch (err) {
+				error(err, cache, reject);
+			}
 		}
 	} else {
-		fetch(ev.request).then(res => {
+		try {
+			const res = await fetch(ev.request);
+
 			if ((res.type === "basic" || res.type === "cors") && res.status >= 200 && res.status < 400 && method !== "HEAD" && method !== "OPTIONS") {
-				cache.delete(ev.request, {ignoreMethod: true});
+				await cache.delete(ev.request, {ignoreMethod: true});
 			}
 
 			resolve(res);
-		}).catch(err => error(err, cache, reject));
+		} catch (err) {
+			error(err, cache, reject);
+		}
 	}
 })));
