@@ -26,6 +26,25 @@ async function error (err, cache, reject) {
 	return result;
 }
 
+async function handle (ev = {}, cache = {}, resolve = () => void 0, reject = () => void 0, cb = async () => void 0) {
+	let lerr, res, valid;
+
+	try {
+		res = await fetch(ev.request);
+		await cb(res);
+		valid = true;
+	} catch (err) {
+		lerr = err;
+		valid = false;
+	}
+
+	if (valid) {
+		resolve(res);
+	} else {
+		error(lerr, cache, reject);
+	}
+}
+
 function log (arg) {
 	console.log(`[serviceWorker:${new Date().getTime()}] ${arg}`);
 }
@@ -95,47 +114,17 @@ self.addEventListener("fetch", ev => ev.respondWith(new Promise(async (resolve, 
 		}
 
 		if (result === void 0) {
-			let lerr, res, valid;
-
-			try {
-				res = await fetch(ev.request);
-
+			handle(ev, cache, resolve, reject, async res => {
 				if ((res.type === "basic" || res.type === "cors") && res.status === 200 && cacheable(res.headers.get("cache-control") || "")) {
 					await cache.put(ev.request, res.clone());
 				}
-
-				valid = true;
-			} catch (err) {
-				lerr = err;
-				valid = false;
-			}
-
-			if (valid) {
-				resolve(res);
-			} else {
-				error(lerr, cache, reject);
-			}
+			});
 		}
 	} else {
-		let lerr, res, valid;
-
-		try {
-			res = await fetch(ev.request);
-
+		handle(ev, cache, resolve, reject, async res => {
 			if ((res.type === "basic" || res.type === "cors") && res.status >= 200 && res.status < 400 && method !== "HEAD" && method !== "OPTIONS") {
 				await cache.delete(ev.request, {ignoreMethod: true});
 			}
-
-			valid = true;
-		} catch (err) {
-			lerr = err;
-			valid = false;
-		}
-
-		if (valid) {
-			resolve(res);
-		} else {
-			error(lerr, cache, reject);
-		}
+		});
 	}
 })));
