@@ -58,6 +58,9 @@ Boolean to generate `loader.js` script for `sw.js`
 #### reload (optional - default false)
 Boolean to force clients to reload when cache has gone stale
 
+#### safari (optional - default true)
+Boolean to load service worker in Safari browser (based on `navigator.userAgent`)
+
 #### timeout (optional - default 1800)
 Default cache TTL (seconds) on requested URLs. Does not apply to core assets!
 

@@ -18,6 +18,7 @@ const path = require("path"),
 		loader: argv.loader || false,
 		name: argv.name || "my-app",
 		reload: argv.reload === true,
+		safari: argv.safari !== "false",
 		src: __dirname,
 		timeout: argv.timeout || 18e2,
 		version: argv.version || 1,
@@ -92,6 +93,10 @@ async function walk (directory, files, apath = `/${directory}`) {
 
 	if (opts.reload) {
 		sw = sw.replace("reload = false", "reload = true");
+	}
+
+	if (opts.safari === false) {
+		sw = sw.replace("safari = true", "safari = false");
 	}
 
 	try {
