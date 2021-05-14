@@ -87,11 +87,6 @@ if (safari || (/Version\/[\d+\.]+ Safari/).test(navigator.userAgent) === false) 
 		}
 	}));
 
-	self.addEventListener("install", ev => {
-		self.skipWaiting();
-		ev.waitUntil(() => log("type=install, message=\"New service worker installed\""));
-	});
-
 	self.addEventListener("fetch", ev => ev.respondWith(new Promise(async (resolve, reject) => {
 		const cache = await caches.open(name),
 			method = ev.request.method;
@@ -126,4 +121,9 @@ if (safari || (/Version\/[\d+\.]+ Safari/).test(navigator.userAgent) === false) 
 			});
 		}
 	})));
+
+	self.addEventListener("install", ev => {
+		self.skipWaiting();
+		ev.waitUntil(() => log("type=install, message=\"New service worker installed\""));
+	});
 }
