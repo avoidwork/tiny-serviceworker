@@ -58,8 +58,8 @@ if (safari || (/Version\/[\d+\.]+ Safari/).test(navigator.userAgent) === false) 
 			log(`type=delete, message="Stale caches: ${invalid.toString()}"`);
 
 			for (const i of invalid.values()) {
-				log(`type=delete, message="Deleted stale cache ${i}"`);
 				await caches.delete(i);
+				log(`type=delete, message="Deleted stale cache ${i}"`);
 			}
 
 			if (reload) {
