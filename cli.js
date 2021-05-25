@@ -13,6 +13,7 @@ const path = require("path"),
 		cwd: process.cwd(),
 		directories: argv.directories || "",
 		failover: argv.failover || "",
+		files: argv.files || "",
 		increment: argv.increment === false ? false : true,
 		ignore: new RegExp(`(${Array.from(new Set(["/sw.js", ...(argv.ignore || "").split(",").filter(i => i.length > 0)])).map(i => `/${i.replace(/^\//, "").replace(/(\/|\.)/g, "\\$1").replace(/\*/, ".*")}`).join(")|(")})$`),
 		loader: argv.loader || false,
@@ -72,9 +73,19 @@ async function walk (directory, files, apath = `/${directory}`) {
 	sw = sw.replace(/timeout = (\d+)/, `timeout = ${opts.timeout}`);
 	sw = sw.replace(/version = (\d+)/, `version = ${opts.version}`);
 
+	if (opts.files.length > 0 && opts.directories.length === 0) {
+		let files = ["/", "/manifest.json", ...opts.files.split(",")];
+
+		if (opts.failover.length > 0 && files.includes(opts.failover) === false) {
+			files.splice(2, 0, opts.failover);
+		}
+
+		sw = sw.replace("urls = [\"/\", \"/manifest.json\"]", `urls = ${JSON.stringify(files.filter(i => opts.ignore.test(i) === false))}`);
+	}
+
 	if (opts.directories.length > 0) {
 		const directories = Array.from(new Set(opts.directories.split(",")));
-		let files = ["/", "/manifest.json"];
+		let files = opts.files.length > 0 ? ["/", "/manifest.json", ...opts.files.split(",")] : ["/", "/manifest.json"];
 
 		for (const directory of directories) {
 			files = await walk(directory, files);
