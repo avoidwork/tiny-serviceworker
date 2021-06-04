@@ -1,5 +1,6 @@
 /.github/
 /.idea/
 /node_modules/
+/test/
 .eslintrc
 .gitignore
