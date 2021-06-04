@@ -43,9 +43,6 @@ Name of your PWA
 #### directories (optional)
 Quoted comma delimited relative (from root) directory names to include in generated service worker
 
-#### failover (optional - URL to be used for network errors)
-Relative URL (from root) to be cached, & used in lieu of `Response.error()`
-
 #### files (optional)
 Quoted comma delimited relative (from root) files to include in generated service worker
 

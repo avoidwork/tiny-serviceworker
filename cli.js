@@ -12,7 +12,6 @@ const path = require("path"),
 	opts = {
 		cwd: process.cwd(),
 		directories: argv.directories || "",
-		failover: argv.failover || "",
 		files: argv.files || "",
 		increment: argv.increment === false ? false : true,
 		ignore: new RegExp(`(${Array.from(new Set(["/sw.js", ...(argv.ignore || "").split(",").filter(i => i.length > 0)])).map(i => `/${i.replace(/^\//, "").replace(/(\/|\.)/g, "\\$1").replace(/\*/, ".*")}`).join(")|(")})$`),
@@ -76,10 +75,6 @@ async function walk (directory, files, apath = `/${directory}`) {
 	if (opts.files.length > 0 && opts.directories.length === 0) {
 		let files = ["/", "/manifest.json", ...opts.files.split(",")];
 
-		if (opts.failover.length > 0 && files.includes(opts.failover) === false) {
-			files.splice(2, 0, opts.failover);
-		}
-
 		sw = sw.replace("urls = [\"/\", \"/manifest.json\"]", `urls = ${JSON.stringify(files.filter(i => opts.ignore.test(i) === false))}`);
 	}
 
@@ -91,15 +86,7 @@ async function walk (directory, files, apath = `/${directory}`) {
 			files = await walk(directory, files);
 		}
 
-		if (opts.failover.length > 0 && files.includes(opts.failover) === false) {
-			files.splice(2, 0, opts.failover);
-		}
-
 		sw = sw.replace("urls = [\"/\", \"/manifest.json\"]", `urls = ${JSON.stringify(files.filter(i => opts.ignore.test(i) === false))}`);
-	}
-
-	if (opts.failover.length > 0) {
-		sw = sw.replace(/failover = ""/, `failover = "${opts.failover}"`);
 	}
 
 	if (opts.reload) {
