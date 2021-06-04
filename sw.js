@@ -63,54 +63,53 @@ if (safari || (/Version\/[\d+\.]+ Safari/).test(navigator.userAgent) === false) 
 		ev.waitUntil(() => log("type=install, message=\"New service worker installed\""));
 	});
 
-	self.addEventListener("fetch", ev => {
-		caches.open(name).then(cache => {
-			const method = ev.request.method;
+	self.addEventListener("fetch", ev => ev.respondWith(caches.open(name).then(cache => {
+		const method = ev.request.method;
+		let result;
 
-			if (method === "GET") {
-				cache.match(ev.request).then(cached => {
-					const now = new Date().getTime();
-					let result;
+		if (method === "GET") {
+			cache.match(ev.request).then(cached => {
+				const now = new Date().getTime();
 
-					if (cached !== void 0) {
-						const url = new URL(cached.url),
-							cdate = cached.headers.get("date"),
-							then = (cdate !== null ? new Date(cdate) : new Date()).getTime() + Number((cached.headers.get("cache-control") || "").replace(/[^\d]/g, "") || timeout) * 1e3;
+				if (cached !== void 0) {
+					const url = new URL(cached.url),
+						cdate = cached.headers.get("date"),
+						then = (cdate !== null ? new Date(cdate) : new Date()).getTime() + Number((cached.headers.get("cache-control") || "").replace(/[^\d]/g, "") || timeout) * 1e3;
 
-						if (urls.includes(url.pathname) || then > now) {
-							result = cached.clone();
+					if (urls.includes(url.pathname) || then > now) {
+						result = cached.clone();
+					}
+				}
+
+				if (result === void 0) {
+					result = fetch(ev.request).then(res => {
+						if ((res.type === "basic" || res.type === "cors") && res.status === 200 && cacheable(res.headers.get("cache-control") || "")) {
+							cache.put(ev.request, res.clone());
 						}
-					}
 
-					if (result === void 0) {
-						fetch(ev.request).then(res => {
-							if ((res.type === "basic" || res.type === "cors") && res.status === 200 && cacheable(res.headers.get("cache-control") || "")) {
-								cache.put(ev.request, res.clone());
-							}
+						if (res.ok === false) {
+							error(cache, res, ev);
+						}
 
-							if (res.ok) {
-								ev.respondWith(res);
-							} else {
-								error(cache, res, ev);
-							}
-						}).catch(err => error(cache, err, ev));
-					} else {
-						ev.respondWith(result);
-					}
-				});
-			} else {
-				fetch(ev.request).then(res => {
-					if ((res.type === "basic" || res.type === "cors") && res.status >= 200 && res.status < 400 && method !== "HEAD" && method !== "OPTIONS") {
-						cache.delete(ev.request, {ignoreMethod: true});
-					}
+						return res;
+					});
+				}
+			});
+		} else {
+			result = fetch(ev.request).then(res => {
+				if ((res.type === "basic" || res.type === "cors") && res.status >= 200 && res.status < 400 && method !== "HEAD" && method !== "OPTIONS") {
+					cache.delete(ev.request, {ignoreMethod: true});
+				}
 
-					if (res.ok) {
-						ev.respondWith(res);
-					} else {
-						error(cache, res, ev);
-					}
-				}).catch(err => error(cache, err, ev));
-			}
-		});
-	});
+				if (res.ok === false) {
+					error(cache, res, ev);
+					ev.respondWith(res);
+				}
+
+				return res;
+			});
+		}
+
+		return result;
+	})));
 }
