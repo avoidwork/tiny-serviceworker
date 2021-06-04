@@ -68,8 +68,9 @@ if (safari || (/Version\/[\d+\.]+ Safari/).test(navigator.userAgent) === false) 
 		let result;
 
 		if (method === "GET") {
-			cache.match(ev.request).then(cached => {
+			result = cache.match(ev.request).then(cached => {
 				const now = new Date().getTime();
+				let lresult;
 
 				if (cached !== void 0) {
 					const url = new URL(cached.url),
@@ -77,12 +78,12 @@ if (safari || (/Version\/[\d+\.]+ Safari/).test(navigator.userAgent) === false) 
 						then = (cdate !== null ? new Date(cdate) : new Date()).getTime() + Number((cached.headers.get("cache-control") || "").replace(/[^\d]/g, "") || timeout) * 1e3;
 
 					if (urls.includes(url.pathname) || then > now) {
-						result = cached.clone();
+						lresult = cached.clone();
 					}
 				}
 
-				if (result === void 0) {
-					result = fetch(ev.request).then(res => {
+				if (lresult === void 0) {
+					lresult = fetch(ev.request).then(res => {
 						if ((res.type === "basic" || res.type === "cors") && res.status === 200 && cacheable(res.headers.get("cache-control") || "")) {
 							cache.put(ev.request, res.clone());
 						}
@@ -94,6 +95,8 @@ if (safari || (/Version\/[\d+\.]+ Safari/).test(navigator.userAgent) === false) 
 						return res;
 					});
 				}
+
+				return lresult;
 			});
 		} else {
 			result = fetch(ev.request).then(res => {
@@ -103,7 +106,6 @@ if (safari || (/Version\/[\d+\.]+ Safari/).test(navigator.userAgent) === false) 
 
 				if (res.ok === false) {
 					error(cache, res, ev);
-					ev.respondWith(res);
 				}
 
 				return res;
