@@ -1,6 +1,6 @@
 "use strict";
 
-const version = 1,
+const version = 2,
 	name = `my-app-v${version}`,
 	timeout = 1800,
 	urls = ["/", "/manifest.json"],
@@ -9,37 +9,14 @@ const version = 1,
 	safari = true,
 	cacheable = arg => (arg.includes("no-store") || arg.includes("max-age=0")) === false;
 
-async function handle (ev = {}, cache = {}, resolve = () => void 0, reject = () => void 0, cb = async () => void 0) {
-	let lerr, res, valid;
+async function error (cache) {
+	let result;
 
-	try {
-		res = await fetch(ev.request);
-		await cb(res);
-		valid = true;
-	} catch (err) {
-		lerr = err;
-		valid = false;
+	if (failover.length > 0) {
+		result = await cache.match(failover);
 	}
 
-	if (valid) {
-		resolve(res);
-	} else {
-		let result;
-
-		if (failover.length > 0) {
-			const cached = await cache.match(failover);
-
-			if (cached !== void 0) {
-				result = cached.clone();
-			}
-		}
-
-		if (result !== void 0) {
-			resolve(result);
-		} else {
-			reject(lerr);
-		}
-	}
+	return result !== void 0 ? result : Response.error();
 }
 
 function log (arg) {
@@ -47,83 +24,85 @@ function log (arg) {
 }
 
 if (safari || (/Version\/[\d+\.]+ Safari/).test(navigator.userAgent) === false) {
-	self.addEventListener("activate", ev => ev.waitUntil(async () => {
-		const args = await caches.keys(),
-			invalid = args.filter(i => i !== name);
-		let reloading = false;
+	self.addEventListener("activate", ev => ev.waitUntil(caches.keys().then(args => {
+		const invalid = args.filter(i => i !== name);
+		let result;
+
+		if (args.includes(name) === false) {
+			caches.open(name).then(cache => {
+				log("type=activate, cached=false, message=\"Caching core assets\"");
+
+				return cache.addAll(urls);
+			}).catch(err => log(`type=error, action=activate, message="${err.message}"`));
+		} else {
+			log("type=activate, cached=true, message=\"Reusing cached core assets\"");
+		}
 
 		if (invalid.length === 0) {
 			log("type=delete, message=\"No stale caches\"");
+			result = Promise.resolve();
 		} else {
 			log(`type=delete, message="Stale caches: ${invalid.toString()}"`);
-
-			for (const i of invalid.values()) {
-				await caches.delete(i);
+			result = Promise.all(invalid.map(i => {
 				log(`type=delete, message="Deleted stale cache ${i}"`);
-			}
+				caches.delete(i);
 
-			if (reload) {
-				await self.clients.claim();
-
-				const clients = await self.clients.matchAll();
-
-				for (const client of clients.values()) {
-					log("type=reload, message=\"Loading new version of application\"");
-					client.postMessage("reload");
-					reloading = true;
+				if (reload) {
+					self.clients.claim();
+					self.clients.matchAll().then(clients => clients.forEach(client => {
+						log("type=reload, message=\"Loading new version of application\"");
+						client.postMessage("reload");
+					}));
 				}
-			}
+			}));
 		}
 
-		if (reloading === false) {
-			if (args.includes(name) === false) {
-				const cache = await caches.open(name);
+		return result;
+	}).catch(() => void 0)));
 
-				log("type=activate, cached=false, message=\"Caching core assets\"");
-				await cache.addAll(urls);
-			} else {
-				log("type=activate, cached=true, message=\"Reusing cached core assets\"");
-			}
-		}
-	}));
+	self.addEventListener("install", ev => {
+		self.skipWaiting();
+		ev.waitUntil(() => log("type=install, message=\"New service worker installed\""));
+	});
 
-	self.addEventListener("fetch", ev => ev.respondWith(new Promise(async (resolve, reject) => {
+	self.addEventListener("fetch", ev => ev.respondWith(new Promise(async resolve => {
 		const cache = await caches.open(name),
 			method = ev.request.method;
+		let result;
 
 		if (method === "GET") {
-			const cached = await cache.match(ev.request);
-			let result;
+			const cached = await cache.match(ev.request),
+				now = new Date().getTime();
 
 			if (cached !== void 0) {
 				const url = new URL(cached.url),
 					cdate = cached.headers.get("date"),
 					then = (cdate !== null ? new Date(cdate) : new Date()).getTime() + Number((cached.headers.get("cache-control") || "").replace(/[^\d]/g, "") || timeout) * 1e3;
 
-				if (urls.includes(url.pathname) || then > new Date().getTime()) {
+				if (urls.includes(url.pathname) || then > now) {
 					result = cached.clone();
-					resolve(result);
 				}
 			}
 
 			if (result === void 0) {
-				handle(ev, cache, resolve, reject, async res => {
+				result = fetch(ev.request).then(res => {
 					if ((res.type === "basic" || res.type === "cors") && res.status === 200 && cacheable(res.headers.get("cache-control") || "")) {
-						await cache.put(ev.request, res.clone());
+						cache.put(ev.request, res.clone());
 					}
-				});
+
+					return res;
+				}).catch(() => error(cache));
 			}
 		} else {
-			handle(ev, cache, resolve, reject, async res => {
+			result = fetch(ev.request).then(res => {
 				if ((res.type === "basic" || res.type === "cors") && res.status >= 200 && res.status < 400 && method !== "HEAD" && method !== "OPTIONS") {
-					await cache.delete(ev.request, {ignoreMethod: true});
+					cache.delete(ev.request, {ignoreMethod: true});
 				}
-			});
-		}
-	})));
 
-	self.addEventListener("install", ev => {
-		self.skipWaiting();
-		ev.waitUntil(() => log("type=install, message=\"New service worker installed\""));
-	});
+				return res;
+			}).catch(() => error(cache));
+		}
+
+		resolve(result);
+	})));
 }
