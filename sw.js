@@ -4,18 +4,9 @@ const version = 1,
 	name = `my-app-v${version}`,
 	timeout = 1800,
 	urls = ["/", "/manifest.json"],
-	failover = "",
 	reload = false,
 	safari = true,
 	cacheable = arg => (arg.includes("no-store") || arg.includes("max-age=0")) === false;
-
-function error (cache, res, ev) {
-	if (failover.length > 0) {
-		cache.match(failover).then(arg => ev.respondWith(arg || res));
-	} else {
-		ev.respondWith(res);
-	}
-}
 
 function log (arg) {
 	console.log(`[serviceWorker:${new Date().getTime()}] ${arg}`);
@@ -88,10 +79,6 @@ if (safari || (/Version\/[\d+\.]+ Safari/).test(navigator.userAgent) === false) 
 							cache.put(ev.request, res.clone());
 						}
 
-						if (res.ok === false) {
-							error(cache, res, ev);
-						}
-
 						return res;
 					});
 				}
@@ -104,14 +91,10 @@ if (safari || (/Version\/[\d+\.]+ Safari/).test(navigator.userAgent) === false) 
 					cache.delete(ev.request, {ignoreMethod: true});
 				}
 
-				if (res.ok === false) {
-					error(cache, res, ev);
-				}
-
 				return res;
 			});
 		}
 
 		return result;
-	})));
+	}).catch(() => void 0)));
 }
