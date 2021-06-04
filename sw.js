@@ -1,6 +1,6 @@
 "use strict";
 
-const version = 2,
+const version = 1,
 	name = `my-app-v${version}`,
 	timeout = 1800,
 	urls = ["/", "/manifest.json"],
