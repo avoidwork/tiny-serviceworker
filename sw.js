@@ -29,6 +29,7 @@ if (safari || (/Version\/[\d+\.]+ Safari/).test(navigator.userAgent) === false) 
 		}
 
 		if (announce) {
+			self.clients.claim();
 			self.clients.matchAll().then(clients => clients.forEach(client => client.postMessage(`version_${version}`)));
 		}
 
