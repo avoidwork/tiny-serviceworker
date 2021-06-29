@@ -26,6 +26,6 @@
   "author": "Jason Mulligan <jason.mulligan@avoidwork.com>",
   "license": "BSD-3-Clause",
   "devDependencies": {
-    "eslint": "^7.27.0"
+    "eslint": "^7.29.0"
   }
 }
