@@ -11,6 +11,7 @@ const path = require("path"),
 	}, {}),
 	opts = {
 		cwd: process.cwd(),
+		announce: argv.announce === false ? false : true,
 		directories: argv.directories || "",
 		files: argv.files || "",
 		increment: argv.increment === false ? false : true,

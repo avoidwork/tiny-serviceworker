@@ -10,6 +10,11 @@
 				window.scrollTo(0, 0);
 				window.location.reload();
 			}
+
+			if (ev.data.startsWith("version_")) {
+				window.appVersion = parseInt(ev.data.split("_")[1] || "1", 10);
+				log("type=serviceWorker, message=\"Set 'window.appVersion' variable\"");
+			}
 		});
 
 		window.addEventListener("load", async () => {

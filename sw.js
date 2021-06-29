@@ -6,6 +6,7 @@ const version = 1,
 	urls = ["/", "/manifest.json"],
 	reload = false,
 	safari = true,
+	announce = true,
 	cacheable = arg => (arg.includes("no-store") || arg.includes("max-age=0")) === false;
 
 function log (arg) {
@@ -25,6 +26,10 @@ if (safari || (/Version\/[\d+\.]+ Safari/).test(navigator.userAgent) === false) 
 			}).catch(err => log(`type=error, action=activate, message="${err.message}"`));
 		} else {
 			log("type=activate, cached=true, message=\"Reusing cached core assets\"");
+		}
+
+		if (announce) {
+			self.clients.matchAll().then(clients => clients.forEach(client => client.postMessage(`version_${version}`)));
 		}
 
 		if (invalid.length === 0) {

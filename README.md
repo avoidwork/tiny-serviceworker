@@ -40,6 +40,9 @@ $ sw --name="myapp" --directories="assets/css,assets/js,assets/img" --loader=tru
 #### name
 Name of your PWA
 
+#### announce (optional - default true)
+Boolean to enable a `client.postMessage("version_$version");`
+
 #### directories (optional)
 Quoted comma delimited relative (from root) directory names to include in generated service worker
 
