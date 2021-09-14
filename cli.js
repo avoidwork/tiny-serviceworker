@@ -74,9 +74,9 @@ async function walk (directory, files, apath = `/${directory}`) {
 	sw = sw.replace(/version = (\d+)/, `version = ${opts.version}`);
 
 	if (opts.files.length > 0 && opts.directories.length === 0) {
-		let files = ["/", "/manifest.json", ...opts.files.split(",")];
+		let files = opts.files.split(",");
 
-		sw = sw.replace("urls = [\"/\", \"/manifest.json\"]", `urls = ${JSON.stringify(files.filter(i => opts.ignore.test(i) === false))}`);
+		sw = sw.replace("urls = []", `urls = ${JSON.stringify(files.filter(i => opts.ignore.test(i) === false))}`);
 	}
 
 	if (opts.directories.length > 0) {
