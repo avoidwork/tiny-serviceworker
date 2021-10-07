@@ -4,6 +4,7 @@ const version = 1,
 	name = `my-app-v${version}`,
 	timeout = 1800,
 	urls = [],
+	hosts = [],
 	reload = false,
 	safari = true,
 	announce = true,
@@ -62,10 +63,11 @@ if (safari || (/Version\/[\d+\.]+ Safari/).test(navigator.userAgent) === false) 
 
 	self.addEventListener("fetch", ev => ev.respondWith(caches.open(name).then(cache => {
 		const method = ev.request.method,
-			http = (/^https?\:/).test(ev.request.url);
+			http = (/^https?\:/).test(ev.request.url),
+			handle = hosts.length === 0 || hosts.includes(new URL(ev.request.url).hostname);
 		let result;
 
-		if (http && method === "GET") {
+		if (http && handle && method === "GET") {
 			result = cache.match(ev.request).then(cached => {
 				const now = new Date().getTime();
 				let lresult;
@@ -94,7 +96,7 @@ if (safari || (/Version\/[\d+\.]+ Safari/).test(navigator.userAgent) === false) 
 			});
 		} else {
 			result = fetch(ev.request).then(res => {
-				if (http && (res.type === "basic" || res.type === "cors") && res.status >= 200 && res.status < 400 && method !== "HEAD" && method !== "OPTIONS") {
+				if (http && handle && (res.type === "basic" || res.type === "cors") && res.status >= 200 && res.status < 400 && method !== "HEAD" && method !== "OPTIONS") {
 					cache.delete(ev.request, {ignoreMethod: true});
 				}
 

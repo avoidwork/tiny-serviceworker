@@ -14,6 +14,7 @@ const path = require("path"),
 		announce: argv.announce === false ? false : true,
 		directories: argv.directories || "",
 		files: argv.files || "",
+		hosts: (argv.hosts || "").split(","),
 		increment: argv.increment === false ? false : true,
 		ignore: new RegExp(`(${Array.from(new Set(["/sw.js", ...(argv.ignore || "").split(",").filter(i => i.length > 0)])).map(i => `/${i.replace(/^\//, "").replace(/(\/|\.)/g, "\\$1").replace(/\*/, ".*")}`).join(")|(")})$`),
 		loader: argv.loader || false,
@@ -72,6 +73,10 @@ async function walk (directory, files, apath = `/${directory}`) {
 
 	sw = sw.replace(/timeout = (\d+)/, `timeout = ${opts.timeout}`);
 	sw = sw.replace(/version = (\d+)/, `version = ${opts.version}`);
+
+	if (opts.hosts.length > 0) {
+		sw = sw.replace("hosts = []", `hosts = ${JSON.stringify(opts.hosts)}`);
+	}
 
 	if (opts.files.length > 0 && opts.directories.length === 0) {
 		let files = opts.files.split(",");

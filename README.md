@@ -55,6 +55,9 @@ Boolean to auto-increment `version` integer in `sw.js`
 #### ignore (optional)
 Quoted comma delimited relative (from root) directories or files to exclude; supports * for wildcards
 
+#### hosts (optional)
+Quoted comma delimited hostnames valid for caching requests
+
 #### loader (optional - default false)
 Boolean to generate `loader.js` script for `sw.js`
 
