@@ -95,7 +95,7 @@ if (safari || (/Version\/[\d+\.]+ Safari/).test(navigator.userAgent) === false) 
 
 					return lresult;
 				});
-			})).catch(() => void 0);
+			}).catch(() => void 0));
 		}
 
 		return result;
