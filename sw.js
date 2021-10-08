@@ -61,49 +61,43 @@ if (safari || (/Version\/[\d+\.]+ Safari/).test(navigator.userAgent) === false) 
 		ev.waitUntil(() => log("type=install, message=\"New service worker installed\""));
 	});
 
-	self.addEventListener("fetch", ev => ev.respondWith(caches.open(name).then(cache => {
+	self.addEventListener("fetch", ev => {
 		const method = ev.request.method,
 			http = (/^https?\:/).test(ev.request.url),
 			handle = hosts.length === 0 || hosts.includes(new URL(ev.request.url).hostname);
 		let result;
 
 		if (http && handle && method === "GET") {
-			result = cache.match(ev.request).then(cached => {
-				const now = new Date().getTime();
-				let lresult;
+			result = ev.respondWith(caches.open(name).then(cache => {
+				return cache.match(ev.request).then(cached => {
+					const now = new Date().getTime();
+					let lresult;
 
-				if (cached !== void 0) {
-					const url = new URL(cached.url),
-						cdate = cached.headers.get("date"),
-						then = (cdate !== null ? new Date(cdate) : new Date()).getTime() + Number((cached.headers.get("cache-control") || "").replace(/[^\d]/g, "") || timeout) * 1e3;
+					if (cached !== void 0) {
+						const url = new URL(cached.url),
+							cdate = cached.headers.get("date"),
+							then = (cdate !== null ? new Date(cdate) : new Date()).getTime() + Number((cached.headers.get("cache-control") || "").replace(/[^\d]/g, "") || timeout) * 1e3;
 
-					if (urls.includes(url.pathname) || then > now) {
-						lresult = cached.clone();
-					}
-				}
-
-				if (lresult === void 0) {
-					lresult = fetch(ev.request).then(res => {
-						if ((res.type === "basic" || res.type === "cors") && res.status === 200 && cacheable(res.headers.get("cache-control") || "")) {
-							cache.put(ev.request, res.clone());
+						if (urls.includes(url.pathname) || then > now) {
+							lresult = cached.clone();
 						}
+					}
 
-						return res;
-					});
-				}
+					if (lresult === void 0) {
+						lresult = fetch(ev.request).then(res => {
+							if ((res.type === "basic" || res.type === "cors") && res.status === 200 && cacheable(res.headers.get("cache-control") || "")) {
+								cache.put(ev.request, res.clone());
+							}
 
-				return lresult;
-			});
-		} else {
-			result = fetch(ev.request).then(res => {
-				if (http && handle && (res.type === "basic" || res.type === "cors") && res.status >= 200 && res.status < 400 && method !== "HEAD" && method !== "OPTIONS") {
-					cache.delete(ev.request, {ignoreMethod: true});
-				}
+							return res;
+						});
+					}
 
-				return res;
-			});
+					return lresult;
+				});
+			})).catch(() => void 0);
 		}
 
 		return result;
-	}).catch(() => void 0)));
+	});
 }
